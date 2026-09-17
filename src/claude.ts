@@ -139,6 +139,21 @@ export interface ClaudeReply {
   images: Buffer[];
 }
 
+export async function generateMorningGreeting(): Promise<string> {
+  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+    { role: 'system', content: config.systemPrompt },
+    {
+      role: 'user',
+      content:
+        'Bay gio la 9 gio sang. Hay chu dong gui mot loi chao buoi sang that ngot ngao, ngan gon, ' +
+        'khac voi nhung lan truoc, de bat dau ngay moi that vui ve.',
+    },
+  ];
+
+  const response = await createCompletion(messages);
+  return response.choices[0]?.message?.content ?? 'Chao buoi sang! Chuc mot ngay tot lanh nhe.';
+}
+
 export async function askClaude(
   history: ChatMessage[],
   userMessage: string,

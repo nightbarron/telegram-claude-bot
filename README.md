@@ -24,6 +24,8 @@ use the bot.
   instance and Claude can call it as a tool for up-to-date/real-world information. Leave it empty
   to disable.
 - Every session is automatically reset (like `/new`) at 3:00 AM Vietnam time (UTC+7) daily.
+- Proactive morning greeting: at 9:00 AM Vietnam time daily, the bot has Claude write a fresh,
+  varied "good morning" message and sends it to every ID in `ALLOWED_USER_IDS`.
 - Resilient API calls: each request retries a couple of times on the primary endpoint, then fails
   over to `AI_BASE_URL_BACKUP` (default: ModelVerse's other region) if the primary keeps failing.
 - Image generation: Claude can call a `generate_image` tool (model configurable via `IMAGE_MODEL`,
@@ -128,6 +130,7 @@ src/
   image.ts         # calls the image generation API and returns a PNG buffer
   format.ts        # converts model markdown output to Telegram-compatible markdown
   dailyReset.ts    # resets every session at 3:00 AM Vietnam time daily
+  morningGreeting.ts # sends a Claude-written good morning message at 9:00 AM Vietnam time
   accessControl.ts # checks a user's Telegram ID against ALLOWED_USER_IDS
   claude.ts        # calls the configured OpenAI-compatible API (Claude model)
   bot.ts           # Telegraf command and handler definitions

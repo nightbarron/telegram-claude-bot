@@ -1,12 +1,14 @@
 import { createBot } from './bot';
 import { cleanupOldLogs } from './chatLog';
 import { scheduleDailyReset } from './dailyReset';
+import { scheduleMorningGreeting } from './morningGreeting';
 
 cleanupOldLogs();
 setInterval(cleanupOldLogs, 24 * 60 * 60 * 1000);
 scheduleDailyReset();
 
 const bot = createBot();
+scheduleMorningGreeting(bot);
 
 bot
   .launch()
