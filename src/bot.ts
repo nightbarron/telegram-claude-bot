@@ -56,17 +56,24 @@ export function createBot(): Telegraf {
       const memories = searchMemory(chatId, text).filter(
         (m) => !session.messages.some((h) => h.timestamp === m.timestamp)
       );
-      const reply = await askClaude(session.messages, text, memories);
+      const { text: reply, images } = await askClaude(session.messages, text, memories);
       const userMsg = { role: 'user' as const, content: text, timestamp: Date.now() };
       const assistantMsg = { role: 'assistant' as const, content: reply, timestamp: Date.now() };
       appendMessage(chatId, userMsg);
       appendMessage(chatId, assistantMsg);
       appendLog(chatId, userMsg);
       appendLog(chatId, assistantMsg);
-      try {
-        await ctx.reply(toTelegramMarkdown(reply), { parse_mode: 'Markdown' });
-      } catch {
-        await ctx.reply(reply);
+
+      for (const image of images) {
+        await ctx.replyWithPhoto({ source: image });
+      }
+
+      if (reply) {
+        try {
+          await ctx.reply(toTelegramMarkdown(reply), { parse_mode: 'Markdown' });
+        } catch {
+          await ctx.reply(reply);
+        }
       }
     } catch (err) {
       console.error('Loi khi goi Claude API:', err);

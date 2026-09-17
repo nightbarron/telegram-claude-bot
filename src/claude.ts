@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { config } from './config';
 import { ChatMessage } from './types';
 import { webSearch } from './search';
+import { generateImage } from './image';
 
 const endpoints = Array.from(new Set([config.aiBaseUrl, config.aiBaseUrlBackup].filter(Boolean)));
 const clients = endpoints.map((baseURL) => new OpenAI({ apiKey: config.aiApiKey, baseURL }));
@@ -43,26 +44,42 @@ async function createCompletion(
   throw lastError;
 }
 
-const tools: OpenAI.Chat.ChatCompletionTool[] = config.searxngUrl
-  ? [
-      {
-        type: 'function',
-        function: {
-          name: 'web_search',
-          description:
-            'Tim kiem thong tin thoi su/thuc te tren internet (gia ca, tin tuc, so lieu, thong tin ' +
-            'cong ty...) khi cau hoi can du lieu moi ma ban khong chac chan.',
-          parameters: {
-            type: 'object',
-            properties: {
-              query: { type: 'string', description: 'Tu khoa tim kiem' },
+const tools: OpenAI.Chat.ChatCompletionTool[] = [
+  {
+    type: 'function',
+    function: {
+      name: 'generate_image',
+      description: 'Tao mot hinh anh tu mo ta van ban khi nguoi dung yeu cau ve/tao/sinh anh.',
+      parameters: {
+        type: 'object',
+        properties: {
+          prompt: { type: 'string', description: 'Mo ta chi tiet hinh anh can tao, bang tieng Anh de ra ket qua tot nhat' },
+        },
+        required: ['prompt'],
+      },
+    },
+  },
+  ...(config.searxngUrl
+    ? [
+        {
+          type: 'function' as const,
+          function: {
+            name: 'web_search',
+            description:
+              'Tim kiem thong tin thoi su/thuc te tren internet (gia ca, tin tuc, so lieu, thong tin ' +
+              'cong ty...) khi cau hoi can du lieu moi ma ban khong chac chan.',
+            parameters: {
+              type: 'object',
+              properties: {
+                query: { type: 'string', description: 'Tu khoa tim kiem' },
+              },
+              required: ['query'],
             },
-            required: ['query'],
           },
         },
-      },
-    ]
-  : [];
+      ]
+    : []),
+];
 
 function buildSystemPrompt(memories: ChatMessage[]): string {
   if (memories.length === 0) return config.systemPrompt;
@@ -82,49 +99,77 @@ function buildSystemPrompt(memories: ChatMessage[]): string {
   );
 }
 
-async function runToolCall(toolCall: OpenAI.Chat.ChatCompletionMessageToolCall): Promise<string> {
-  if (toolCall.type !== 'function' || toolCall.function.name !== 'web_search') {
+async function runToolCall(
+  toolCall: OpenAI.Chat.ChatCompletionMessageToolCall,
+  images: Buffer[]
+): Promise<string> {
+  if (toolCall.type !== 'function') {
     return 'Tool nay khong duoc ho tro.';
   }
 
-  try {
-    const args = JSON.parse(toolCall.function.arguments) as { query: string };
-    const results = await webSearch(args.query);
-    if (results.length === 0) return 'Khong tim thay ket qua nao.';
-    return results
-      .map((r, i) => `${i + 1}. ${r.title} (${r.url})\n${r.content}`)
-      .join('\n\n');
-  } catch (err) {
-    return `Loi khi tim kiem: ${(err as Error).message}`;
+  if (toolCall.function.name === 'generate_image') {
+    try {
+      const args = JSON.parse(toolCall.function.arguments) as { prompt: string };
+      const image = await generateImage(args.prompt);
+      images.push(image);
+      return 'Da tao anh thanh cong va gui cho nguoi dung.';
+    } catch (err) {
+      return `Loi khi tao anh: ${(err as Error).message}`;
+    }
   }
+
+  if (toolCall.function.name === 'web_search') {
+    try {
+      const args = JSON.parse(toolCall.function.arguments) as { query: string };
+      const results = await webSearch(args.query);
+      if (results.length === 0) return 'Khong tim thay ket qua nao.';
+      return results
+        .map((r, i) => `${i + 1}. ${r.title} (${r.url})\n${r.content}`)
+        .join('\n\n');
+    } catch (err) {
+      return `Loi khi tim kiem: ${(err as Error).message}`;
+    }
+  }
+
+  return `Khong ho tro tool "${toolCall.function.name}".`;
+}
+
+export interface ClaudeReply {
+  text: string;
+  images: Buffer[];
 }
 
 export async function askClaude(
   history: ChatMessage[],
   userMessage: string,
   memories: ChatMessage[] = []
-): Promise<string> {
+): Promise<ClaudeReply> {
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
     { role: 'system', content: buildSystemPrompt(memories) },
     ...history.map((m) => ({ role: m.role, content: m.content })),
     { role: 'user' as const, content: userMessage },
   ];
 
+  const images: Buffer[] = [];
+
   for (let step = 0; step < 4; step += 1) {
     const response = await createCompletion(messages);
     const choice = response.choices[0]?.message;
-    if (!choice) return '(Khong co noi dung phan hoi)';
+    if (!choice) return { text: '(Khong co noi dung phan hoi)', images };
 
     if (!choice.tool_calls || choice.tool_calls.length === 0) {
-      return choice.content ?? '(Khong co noi dung phan hoi)';
+      return { text: choice.content ?? '(Khong co noi dung phan hoi)', images };
     }
 
     messages.push(choice);
     for (const toolCall of choice.tool_calls) {
-      const result = await runToolCall(toolCall);
+      const result = await runToolCall(toolCall, images);
       messages.push({ role: 'tool', tool_call_id: toolCall.id, content: result });
     }
   }
 
-  return 'Xin loi, Co Chu thu hoi lai cau khac giup Tro ly nhe, tim kiem hoi lau qua.';
+  return {
+    text: 'Xin loi, Co Chu thu hoi lai cau khac giup Tro ly nhe, thao tac hoi lau qua.',
+    images,
+  };
 }

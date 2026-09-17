@@ -26,6 +26,9 @@ use the bot.
 - Every session is automatically reset (like `/new`) at 3:00 AM Vietnam time (UTC+7) daily.
 - Resilient API calls: each request retries a couple of times on the primary endpoint, then fails
   over to `AI_BASE_URL_BACKUP` (default: ModelVerse's other region) if the primary keeps failing.
+- Image generation: Claude can call a `generate_image` tool (model configurable via `IMAGE_MODEL`,
+  default `gpt-image-2`) when asked to draw/create a picture, and the bot sends the result as a
+  Telegram photo.
 - Access control (`ALLOWED_USER_IDS`): only the Telegram user IDs listed here can use the bot;
   everyone else is rejected immediately, no code or sign-up flow.
 
@@ -122,6 +125,7 @@ src/
   chatLog.ts       # append-only full history archive, data/logs/<chatId>/<date>.jsonl
   memory.ts        # keyword search over the full archive to recall older context
   search.ts        # queries a self-hosted SearXNG instance for web search results
+  image.ts         # calls the image generation API and returns a PNG buffer
   format.ts        # converts model markdown output to Telegram-compatible markdown
   dailyReset.ts    # resets every session at 3:00 AM Vietnam time daily
   accessControl.ts # checks a user's Telegram ID against ALLOWED_USER_IDS

@@ -29,6 +29,8 @@ export const config = {
   maxHistoryMessages: Number(process.env.MAX_HISTORY_MESSAGES ?? 20),
   logRetentionDays: Number(process.env.LOG_RETENTION_DAYS ?? 60),
   searxngUrl: process.env.SEARXNG_URL ?? '',
+  imageModel: process.env.IMAGE_MODEL ?? 'gpt-image-2',
+  imageBaseUrl: process.env.IMAGE_BASE_URL ?? 'https://api-us-ca.umodelverse.ai/v1',
   dataDir,
   sessionsDir: path.join(dataDir, 'sessions'),
   logsDir: path.join(dataDir, 'logs'),
