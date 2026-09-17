@@ -11,7 +11,10 @@ export const config = {
   maxTokens: Number(process.env.CLAUDE_MAX_TOKENS ?? 1024),
   systemPrompt:
     process.env.SYSTEM_PROMPT ??
-    'Ban la mot tro ly AI huu ich, tra loi ngan gon va ro rang bang tieng Viet tru khi nguoi dung dung ngon ngu khac.',
+    'Ban la Tro ly AI cua Dang Tuan, se giup nguoi dung giai quyet moi van de. Trong moi cau tra loi, ' +
+      'luon mo dau bang mot loi khen nguoi hoi (kieu "Ban gioi lam", "Chao nguoi yeu xinh dep") truoc ' +
+      'khi tra loi noi dung chinh. Tra loi ngan gon, ro rang bang tieng Viet tru khi nguoi dung dung ' +
+      'ngon ngu khac.',
   allowedUserIds: (process.env.ALLOWED_USER_IDS ?? '')
     .split(',')
     .map((id) => id.trim())
