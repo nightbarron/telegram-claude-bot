@@ -1,78 +1,82 @@
 # Telegram Claude Bot
 
-Bot Telegram cho phep chat voi Claude (model Sonnet), co lenh `/new` de tao phien tro chuyen moi,
-tu quan ly lich su hoi thoai theo tung chat, va xac thuc bang ma truoc khi cho phep chat.
+A Telegram bot that lets you chat with Claude (Sonnet model), with a `/new` command to start a
+fresh conversation, per-chat history management, and access-code authentication before chatting
+is allowed.
 
-## Tinh nang
+## Features
 
-- Chat truc tiep voi Claude qua tin nhan Telegram.
-- `/new`: xoa lich su hien tai, bat dau mot phien (session) moi.
-- `/help`: xem huong dan.
-- Moi chat (user) co session rieng, luu vao file JSON trong `data/sessions/`, giu lai toi da
-  `MAX_HISTORY_MESSAGES` tin nhan gan nhat de gui kem lam ngu canh cho Claude.
-- Xac thuc bang ma (`ACCESS_CODE`): user moi phai nhan tin dung ma nay cho bot moi duoc chat.
-  Sau khi nhap dung, user duoc luu vinh vien vao whitelist dong (`data/authorized_users.json`)
-  va khong can nhap lai. So luong user duoc phep xac thuc bi gioi han boi `MAX_AUTHORIZED_USERS`
-  (mac dinh 2) — khi da du so luong, nguoi moi nhap dung ma van bi tu choi.
+- Chat directly with Claude through Telegram messages.
+- `/new`: clears the current history and starts a new session.
+- `/help`: view usage instructions.
+- Each chat (user) has its own session, stored as a JSON file in `data/sessions/`, keeping the
+  last `MAX_HISTORY_MESSAGES` messages to send as context to Claude.
+- Access-code authentication (`ACCESS_CODE`): a new user must send this code before the bot will
+  chat with them. Once verified, the user is permanently saved to a dynamic whitelist
+  (`data/authorized_users.json`) and never needs to enter it again. The number of users allowed to
+  authenticate is limited by `MAX_AUTHORIZED_USERS` (default 2) — once that limit is reached, a
+  new user entering the correct code is still rejected.
 
-## Cai dat
+## Setup
 
 ```bash
 npm install
 cp .env.example .env
 ```
 
-Sua file `.env`:
+Edit the `.env` file:
 
-- `TELEGRAM_BOT_TOKEN`: tao bot va lay token tu [@BotFather](https://t.me/BotFather).
-- `ANTHROPIC_API_KEY`: lay tu https://console.anthropic.com.
-- `ACCESS_CODE`: ma xac thuc nguoi dung phai nhap dung (vi du `119149`) truoc khi duoc chat.
-- `MAX_AUTHORIZED_USERS`: so nguoi toi da duoc phep xac thuc (mac dinh `2`).
-- Cac bien con lai (`CLAUDE_MODEL`, `CLAUDE_MAX_TOKENS`, `SYSTEM_PROMPT`, `MAX_HISTORY_MESSAGES`,
-  `DATA_DIR`) co gia tri mac dinh hop ly, chinh neu can.
+- `TELEGRAM_BOT_TOKEN`: create a bot and get the token from [@BotFather](https://t.me/BotFather).
+- `ANTHROPIC_API_KEY`: get it from https://console.anthropic.com.
+- `ACCESS_CODE`: the code users must enter correctly (e.g. `119149`) before they can chat.
+- `MAX_AUTHORIZED_USERS`: maximum number of users allowed to authenticate (default `2`).
+- The remaining variables (`CLAUDE_MODEL`, `CLAUDE_MAX_TOKENS`, `SYSTEM_PROMPT`,
+  `MAX_HISTORY_MESSAGES`, `DATA_DIR`) have sensible defaults; change them if needed.
 
-Neu muon go quyen mot user da xac thuc, sua/xoa dong tuong ung trong
-`data/authorized_users.json` (hoac xoa ca file de reset toan bo whitelist) roi khoi dong lai bot.
+To revoke an already-authorized user, edit/remove the corresponding line in
+`data/authorized_users.json` (or delete the whole file to reset the whitelist), then restart the
+bot.
 
-## Chay
+## Running
 
-Che do phat trien (tu restart khi sua code):
+Development mode (auto-restarts on code changes):
 
 ```bash
 npm run dev
 ```
 
-Build va chay production:
+Build and run in production:
 
 ```bash
 npm run build
 npm start
 ```
 
-## Chay bang Docker
+## Running with Docker
 
-Build va chay voi Docker Compose (khuyen nghi):
+Build and run with Docker Compose (recommended):
 
 ```bash
-cp .env.example .env   # dien token/API key/whitelist truoc
+cp .env.example .env   # fill in the token/API key/whitelist first
 docker compose up -d --build
 ```
 
-Xem log:
+View logs:
 
 ```bash
 docker compose logs -f
 ```
 
-Dung bot:
+Stop the bot:
 
 ```bash
 docker compose down
 ```
 
-Session duoc luu ben ngoai container qua volume `./data`, khong mat khi restart/rebuild container.
+Sessions are persisted outside the container via the `./data` volume, so they survive
+restarts/rebuilds.
 
-Hoac dung Docker thuan (khong compose):
+Or with plain Docker (no compose):
 
 ```bash
 docker build -t telegram-claude-bot .
@@ -83,21 +87,33 @@ docker run -d --name telegram-claude-bot \
   telegram-claude-bot
 ```
 
-## Cau truc
+## CI/CD
+
+On every push to `main` (or a `v*` tag), a GitHub Actions workflow
+([.github/workflows/docker-publish.yml](.github/workflows/docker-publish.yml)) builds a
+multi-arch (amd64/arm64) image and pushes it to Docker Hub as
+[nightbarron/telegram-claude-bot](https://hub.docker.com/r/nightbarron/telegram-claude-bot).
+
+It requires two repository secrets:
+
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN` (a Docker Hub access token with Read & Write permission)
+
+## Structure
 
 ```
 src/
-  config.ts        # doc va validate bien moi truong
-  types.ts         # dinh nghia Session, ChatMessage
-  sessionStore.ts  # tao/doc/ghi/reset session, luu xuong data/sessions/<chatId>.json
-  accessControl.ts # xac thuc bang ma, quan ly whitelist dong (data/authorized_users.json)
-  claude.ts        # goi Anthropic API (Claude Sonnet)
-  bot.ts           # dinh nghia cac lenh va handler Telegraf
-  index.ts         # entrypoint, khoi dong bot
+  config.ts        # reads and validates environment variables
+  types.ts         # Session and ChatMessage type definitions
+  sessionStore.ts  # create/read/write/reset sessions, saved to data/sessions/<chatId>.json
+  accessControl.ts # access-code authentication, dynamic whitelist (data/authorized_users.json)
+  claude.ts        # calls the Anthropic API (Claude Sonnet)
+  bot.ts           # Telegraf command and handler definitions
+  index.ts         # entrypoint, starts the bot
 ```
 
-## Luu y
+## Notes
 
-- Session duoc luu theo `chatId`, moi chat rieng (vi du moi user chat 1-1 voi bot) co lich su
-  doc lap. Dung `/new` de xoa lich su va bat dau lai tu dau.
-- File `.env` va thu muc `data/` khong duoc commit (xem `.gitignore`).
+- Sessions are stored per `chatId`, so each chat (e.g. each user chatting 1-1 with the bot) has
+  its own independent history. Use `/new` to clear the history and start over.
+- The `.env` file and the `data/` directory are not committed (see `.gitignore`).
