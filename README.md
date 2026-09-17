@@ -15,6 +15,9 @@ use the bot.
 - Full, permanent chat history is archived separately in `data/logs/<chatId>/<YYYY-MM-DD>.jsonl`
   (one JSON line per message, never trimmed), so nothing is lost even after `/new` or the
   session's history window rolls over.
+- "Second brain" recall: before answering, the bot does a simple keyword search over that chat's
+  full archive and feeds any relevant older messages back to Claude as extra context, so it can
+  reference things said well before the current session window.
 - Access control (`ALLOWED_USER_IDS`): only the Telegram user IDs listed here can use the bot;
   everyone else is rejected immediately, no code or sign-up flow.
 
@@ -107,6 +110,7 @@ src/
   types.ts         # Session and ChatMessage type definitions
   sessionStore.ts  # create/read/write/reset sessions, saved to data/sessions/<chatId>.json
   chatLog.ts       # append-only full history archive, data/logs/<chatId>/<date>.jsonl
+  memory.ts        # keyword search over the full archive to recall older context
   accessControl.ts # checks a user's Telegram ID against ALLOWED_USER_IDS
   claude.ts        # calls the configured OpenAI-compatible API (Claude model)
   bot.ts           # Telegraf command and handler definitions

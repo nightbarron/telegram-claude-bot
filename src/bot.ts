@@ -4,6 +4,7 @@ import { config } from './config';
 import { isAuthorized } from './accessControl';
 import { getSession, resetSession, appendMessage } from './sessionStore';
 import { appendLog } from './chatLog';
+import { searchMemory } from './memory';
 import { askClaude } from './claude';
 
 export function createBot(): Telegraf {
@@ -51,7 +52,10 @@ export function createBot(): Telegraf {
     await ctx.sendChatAction('typing');
 
     try {
-      const reply = await askClaude(session.messages, text);
+      const memories = searchMemory(chatId, text).filter(
+        (m) => !session.messages.some((h) => h.timestamp === m.timestamp)
+      );
+      const reply = await askClaude(session.messages, text, memories);
       const userMsg = { role: 'user' as const, content: text, timestamp: Date.now() };
       const assistantMsg = { role: 'assistant' as const, content: reply, timestamp: Date.now() };
       appendMessage(chatId, userMsg);
