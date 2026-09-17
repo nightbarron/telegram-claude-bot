@@ -6,6 +6,7 @@ import { getSession, resetSession, appendMessage } from './sessionStore';
 import { appendLog } from './chatLog';
 import { searchMemory } from './memory';
 import { askClaude } from './claude';
+import { toTelegramMarkdown } from './format';
 
 export function createBot(): Telegraf {
   const bot = new Telegraf(config.telegramBotToken);
@@ -62,7 +63,11 @@ export function createBot(): Telegraf {
       appendMessage(chatId, assistantMsg);
       appendLog(chatId, userMsg);
       appendLog(chatId, assistantMsg);
-      await ctx.reply(reply);
+      try {
+        await ctx.reply(toTelegramMarkdown(reply), { parse_mode: 'Markdown' });
+      } catch {
+        await ctx.reply(reply);
+      }
     } catch (err) {
       console.error('Loi khi goi Claude API:', err);
       await ctx.reply('Da xay ra loi khi goi Claude. Vui long thu lai sau.');

@@ -25,6 +25,7 @@ export const config = {
     .map(Number),
   maxHistoryMessages: Number(process.env.MAX_HISTORY_MESSAGES ?? 20),
   logRetentionDays: Number(process.env.LOG_RETENTION_DAYS ?? 60),
+  searxngUrl: process.env.SEARXNG_URL ?? '',
   dataDir,
   sessionsDir: path.join(dataDir, 'sessions'),
   logsDir: path.join(dataDir, 'logs'),

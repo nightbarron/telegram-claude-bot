@@ -20,6 +20,9 @@ use the bot.
   reference things said well before the current session window.
 - Log files older than `LOG_RETENTION_DAYS` (default 60) are deleted automatically, checked at
   startup and every 24h.
+- Optional web search: set `SEARXNG_URL` to a self-hosted [SearXNG](https://docs.searxng.org/)
+  instance and Claude can call it as a tool for up-to-date/real-world information. Leave it empty
+  to disable.
 - Access control (`ALLOWED_USER_IDS`): only the Telegram user IDs listed here can use the bot;
   everyone else is rejected immediately, no code or sign-up flow.
 
@@ -113,6 +116,8 @@ src/
   sessionStore.ts  # create/read/write/reset sessions, saved to data/sessions/<chatId>.json
   chatLog.ts       # append-only full history archive, data/logs/<chatId>/<date>.jsonl
   memory.ts        # keyword search over the full archive to recall older context
+  search.ts        # queries a self-hosted SearXNG instance for web search results
+  format.ts        # converts model markdown output to Telegram-compatible markdown
   accessControl.ts # checks a user's Telegram ID against ALLOWED_USER_IDS
   claude.ts        # calls the configured OpenAI-compatible API (Claude model)
   bot.ts           # Telegraf command and handler definitions
