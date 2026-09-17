@@ -1,4 +1,8 @@
 import { createBot } from './bot';
+import { cleanupOldLogs } from './chatLog';
+
+cleanupOldLogs();
+setInterval(cleanupOldLogs, 24 * 60 * 60 * 1000);
 
 const bot = createBot();
 

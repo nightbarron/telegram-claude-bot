@@ -18,6 +18,8 @@ use the bot.
 - "Second brain" recall: before answering, the bot does a simple keyword search over that chat's
   full archive and feeds any relevant older messages back to Claude as extra context, so it can
   reference things said well before the current session window.
+- Log files older than `LOG_RETENTION_DAYS` (default 60) are deleted automatically, checked at
+  startup and every 24h.
 - Access control (`ALLOWED_USER_IDS`): only the Telegram user IDs listed here can use the bot;
   everyone else is rejected immediately, no code or sign-up flow.
 

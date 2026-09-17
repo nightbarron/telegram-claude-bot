@@ -21,6 +21,7 @@ export const config = {
     .filter(Boolean)
     .map(Number),
   maxHistoryMessages: Number(process.env.MAX_HISTORY_MESSAGES ?? 20),
+  logRetentionDays: Number(process.env.LOG_RETENTION_DAYS ?? 60),
   dataDir,
   sessionsDir: path.join(dataDir, 'sessions'),
   logsDir: path.join(dataDir, 'logs'),
