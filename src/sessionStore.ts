@@ -62,6 +62,26 @@ export function resetSession(userId: number, chatId: number): Session {
   return createSession(userId, chatId);
 }
 
+export function resetAllSessions(): void {
+  let files: string[];
+  try {
+    files = fs.readdirSync(config.sessionsDir);
+  } catch {
+    return;
+  }
+
+  for (const file of files) {
+    if (!file.endsWith('.json')) continue;
+    try {
+      const raw = fs.readFileSync(path.join(config.sessionsDir, file), 'utf-8');
+      const session = JSON.parse(raw) as Session;
+      resetSession(session.userId, session.chatId);
+    } catch {
+      // bo qua file session hong
+    }
+  }
+}
+
 export function appendMessage(chatId: number, message: ChatMessage): void {
   const session = cache.get(chatId);
   if (!session) return;

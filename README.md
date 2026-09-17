@@ -23,6 +23,7 @@ use the bot.
 - Optional web search: set `SEARXNG_URL` to a self-hosted [SearXNG](https://docs.searxng.org/)
   instance and Claude can call it as a tool for up-to-date/real-world information. Leave it empty
   to disable.
+- Every session is automatically reset (like `/new`) at 3:00 AM Vietnam time (UTC+7) daily.
 - Access control (`ALLOWED_USER_IDS`): only the Telegram user IDs listed here can use the bot;
   everyone else is rejected immediately, no code or sign-up flow.
 
@@ -118,6 +119,7 @@ src/
   memory.ts        # keyword search over the full archive to recall older context
   search.ts        # queries a self-hosted SearXNG instance for web search results
   format.ts        # converts model markdown output to Telegram-compatible markdown
+  dailyReset.ts    # resets every session at 3:00 AM Vietnam time daily
   accessControl.ts # checks a user's Telegram ID against ALLOWED_USER_IDS
   claude.ts        # calls the configured OpenAI-compatible API (Claude model)
   bot.ts           # Telegraf command and handler definitions
