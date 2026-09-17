@@ -24,6 +24,8 @@ use the bot.
   instance and Claude can call it as a tool for up-to-date/real-world information. Leave it empty
   to disable.
 - Every session is automatically reset (like `/new`) at 3:00 AM Vietnam time (UTC+7) daily.
+- Resilient API calls: each request retries a couple of times on the primary endpoint, then fails
+  over to `AI_BASE_URL_BACKUP` (default: ModelVerse's other region) if the primary keeps failing.
 - Access control (`ALLOWED_USER_IDS`): only the Telegram user IDs listed here can use the bot;
   everyone else is rejected immediately, no code or sign-up flow.
 
@@ -39,6 +41,8 @@ Edit the `.env` file:
 - `TELEGRAM_BOT_TOKEN`: create a bot and get the token from [@BotFather](https://t.me/BotFather).
 - `AI_API_KEY`: API key from your provider's console (e.g. ModelVerse).
 - `AI_BASE_URL`: the provider's OpenAI-compatible base URL (default: ModelVerse).
+- `AI_BASE_URL_BACKUP`: fallback base URL used if `AI_BASE_URL` keeps failing (default:
+  ModelVerse's other region).
 - `ALLOWED_USER_IDS`: comma-separated Telegram user IDs allowed to use the bot (get your own ID
   by messaging [@userinfobot](https://t.me/userinfobot)).
 - The remaining variables (`CLAUDE_MODEL`, `CLAUDE_MAX_TOKENS`, `SYSTEM_PROMPT`,

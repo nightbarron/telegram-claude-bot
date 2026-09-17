@@ -3,7 +3,45 @@ import { config } from './config';
 import { ChatMessage } from './types';
 import { webSearch } from './search';
 
-const client = new OpenAI({ apiKey: config.aiApiKey, baseURL: config.aiBaseUrl });
+const endpoints = Array.from(new Set([config.aiBaseUrl, config.aiBaseUrlBackup].filter(Boolean)));
+const clients = endpoints.map((baseURL) => new OpenAI({ apiKey: config.aiApiKey, baseURL }));
+
+const RETRIES_PER_ENDPOINT = 2;
+const RETRY_DELAY_MS = 1000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function createCompletion(
+  messages: OpenAI.Chat.ChatCompletionMessageParam[]
+): Promise<OpenAI.Chat.ChatCompletion> {
+  let lastError: unknown;
+
+  for (let i = 0; i < clients.length; i += 1) {
+    for (let attempt = 1; attempt <= RETRIES_PER_ENDPOINT; attempt += 1) {
+      try {
+        return await clients[i].chat.completions.create({
+          model: config.claudeModel,
+          max_tokens: config.maxTokens,
+          messages,
+          tools: tools.length > 0 ? tools : undefined,
+        });
+      } catch (err) {
+        lastError = err;
+        console.error(
+          `Loi goi API (${endpoints[i]}, lan ${attempt}/${RETRIES_PER_ENDPOINT}):`,
+          (err as Error).message
+        );
+        if (attempt < RETRIES_PER_ENDPOINT) {
+          await sleep(RETRY_DELAY_MS * attempt);
+        }
+      }
+    }
+  }
+
+  throw lastError;
+}
 
 const tools: OpenAI.Chat.ChatCompletionTool[] = config.searxngUrl
   ? [
@@ -73,13 +111,7 @@ export async function askClaude(
   ];
 
   for (let step = 0; step < 4; step += 1) {
-    const response = await client.chat.completions.create({
-      model: config.claudeModel,
-      max_tokens: config.maxTokens,
-      messages,
-      tools: tools.length > 0 ? tools : undefined,
-    });
-
+    const response = await createCompletion(messages);
     const choice = response.choices[0]?.message;
     if (!choice) return '(Khong co noi dung phan hoi)';
 
