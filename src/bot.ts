@@ -3,6 +3,7 @@ import { message } from 'telegraf/filters';
 import { config } from './config';
 import { isAuthorized } from './accessControl';
 import { getSession, resetSession, appendMessage } from './sessionStore';
+import { appendLog } from './chatLog';
 import { askClaude } from './claude';
 
 export function createBot(): Telegraf {
@@ -51,8 +52,12 @@ export function createBot(): Telegraf {
 
     try {
       const reply = await askClaude(session.messages, text);
-      appendMessage(chatId, { role: 'user', content: text, timestamp: Date.now() });
-      appendMessage(chatId, { role: 'assistant', content: reply, timestamp: Date.now() });
+      const userMsg = { role: 'user' as const, content: text, timestamp: Date.now() };
+      const assistantMsg = { role: 'assistant' as const, content: reply, timestamp: Date.now() };
+      appendMessage(chatId, userMsg);
+      appendMessage(chatId, assistantMsg);
+      appendLog(chatId, userMsg);
+      appendLog(chatId, assistantMsg);
       await ctx.reply(reply);
     } catch (err) {
       console.error('Loi khi goi Claude API:', err);

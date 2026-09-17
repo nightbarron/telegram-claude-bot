@@ -23,6 +23,7 @@ export const config = {
   maxHistoryMessages: Number(process.env.MAX_HISTORY_MESSAGES ?? 20),
   dataDir,
   sessionsDir: path.join(dataDir, 'sessions'),
+  logsDir: path.join(dataDir, 'logs'),
 };
 
 if (!config.telegramBotToken) {
