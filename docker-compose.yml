@@ -1,0 +1,10 @@
+services:
+  telegram-claude-bot:
+    build: .
+    image: telegram-claude-bot:latest
+    container_name: telegram-claude-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data

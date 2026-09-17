@@ -1,0 +1,14 @@
+import { createBot } from './bot';
+
+const bot = createBot();
+
+bot
+  .launch()
+  .then(() => console.log('Bot da khoi dong.'))
+  .catch((err) => {
+    console.error('Khong the khoi dong bot:', err);
+    process.exit(1);
+  });
+
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
