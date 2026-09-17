@@ -5,7 +5,8 @@ const dataDir = process.env.DATA_DIR ?? 'data';
 
 export const config = {
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN ?? '',
-  anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
+  aiApiKey: process.env.AI_API_KEY ?? '',
+  aiBaseUrl: process.env.AI_BASE_URL ?? 'https://api-sg.umodelverse.ai/v1',
   claudeModel: process.env.CLAUDE_MODEL ?? 'claude-sonnet-5',
   maxTokens: Number(process.env.CLAUDE_MAX_TOKENS ?? 1024),
   systemPrompt:
@@ -22,8 +23,8 @@ export const config = {
 if (!config.telegramBotToken) {
   throw new Error('Thieu TELEGRAM_BOT_TOKEN trong file .env');
 }
-if (!config.anthropicApiKey) {
-  throw new Error('Thieu ANTHROPIC_API_KEY trong file .env');
+if (!config.aiApiKey) {
+  throw new Error('Thieu AI_API_KEY trong file .env');
 }
 if (!config.accessCode) {
   throw new Error('Thieu ACCESS_CODE trong file .env (ma xac thuc de nguoi dung duoc phep chat)');
