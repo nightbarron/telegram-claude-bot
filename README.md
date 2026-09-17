@@ -1,21 +1,19 @@
 # Telegram Claude Bot
 
-A Telegram bot that lets you chat with Claude (Sonnet model), with a `/new` command to start a
-fresh conversation, per-chat history management, and access-code authentication before chatting
-is allowed.
+A Telegram bot that lets you chat with Claude, with a `/new` command to start a fresh
+conversation, per-chat history management, and a fixed allow-list of Telegram user IDs who may
+use the bot.
 
 ## Features
 
-- Chat directly with Claude through Telegram messages.
+- Chat directly with Claude through Telegram messages, via any OpenAI-compatible API provider
+  (e.g. [ModelVerse](https://astraflow.scloudsg.com/en-us/docs/modelverse)).
 - `/new`: clears the current history and starts a new session.
 - `/help`: view usage instructions.
 - Each chat (user) has its own session, stored as a JSON file in `data/sessions/`, keeping the
   last `MAX_HISTORY_MESSAGES` messages to send as context to Claude.
-- Access-code authentication (`ACCESS_CODE`): a new user must send this code before the bot will
-  chat with them. Once verified, the user is permanently saved to a dynamic whitelist
-  (`data/authorized_users.json`) and never needs to enter it again. The number of users allowed to
-  authenticate is limited by `MAX_AUTHORIZED_USERS` (default 2) — once that limit is reached, a
-  new user entering the correct code is still rejected.
+- Access control (`ALLOWED_USER_IDS`): only the Telegram user IDs listed here can use the bot;
+  everyone else is rejected immediately, no code or sign-up flow.
 
 ## Setup
 
@@ -27,15 +25,14 @@ cp .env.example .env
 Edit the `.env` file:
 
 - `TELEGRAM_BOT_TOKEN`: create a bot and get the token from [@BotFather](https://t.me/BotFather).
-- `ANTHROPIC_API_KEY`: get it from https://console.anthropic.com.
-- `ACCESS_CODE`: the code users must enter correctly (e.g. `119149`) before they can chat.
-- `MAX_AUTHORIZED_USERS`: maximum number of users allowed to authenticate (default `2`).
+- `AI_API_KEY`: API key from your provider's console (e.g. ModelVerse).
+- `AI_BASE_URL`: the provider's OpenAI-compatible base URL (default: ModelVerse).
+- `ALLOWED_USER_IDS`: comma-separated Telegram user IDs allowed to use the bot (get your own ID
+  by messaging [@userinfobot](https://t.me/userinfobot)).
 - The remaining variables (`CLAUDE_MODEL`, `CLAUDE_MAX_TOKENS`, `SYSTEM_PROMPT`,
   `MAX_HISTORY_MESSAGES`, `DATA_DIR`) have sensible defaults; change them if needed.
 
-To revoke an already-authorized user, edit/remove the corresponding line in
-`data/authorized_users.json` (or delete the whole file to reset the whitelist), then restart the
-bot.
+To revoke a user, remove their ID from `ALLOWED_USER_IDS` and restart the bot.
 
 ## Running
 
@@ -57,7 +54,7 @@ npm start
 Build and run with Docker Compose (recommended):
 
 ```bash
-cp .env.example .env   # fill in the token/API key/whitelist first
+cp .env.example .env   # fill in the token/API key/allow-list first
 docker compose up -d --build
 ```
 
@@ -76,22 +73,22 @@ docker compose down
 Sessions are persisted outside the container via the `./data` volume, so they survive
 restarts/rebuilds.
 
-Or with plain Docker (no compose):
+Or with plain Docker (no compose), using the prebuilt image from Docker Hub:
 
 ```bash
-docker build -t telegram-claude-bot .
+docker pull nightbarron/telegram-claude-bot:latest
 docker run -d --name telegram-claude-bot \
   --env-file .env \
   -v "$(pwd)/data:/app/data" \
   --restart unless-stopped \
-  telegram-claude-bot
+  nightbarron/telegram-claude-bot:latest
 ```
 
 ## CI/CD
 
 On every push to `main` (or a `v*` tag), a GitHub Actions workflow
 ([.github/workflows/docker-publish.yml](.github/workflows/docker-publish.yml)) builds a
-multi-arch (amd64/arm64) image and pushes it to Docker Hub as
+`linux/amd64` image and pushes it to Docker Hub as
 [nightbarron/telegram-claude-bot](https://hub.docker.com/r/nightbarron/telegram-claude-bot).
 
 It requires two repository secrets:
@@ -106,8 +103,8 @@ src/
   config.ts        # reads and validates environment variables
   types.ts         # Session and ChatMessage type definitions
   sessionStore.ts  # create/read/write/reset sessions, saved to data/sessions/<chatId>.json
-  accessControl.ts # access-code authentication, dynamic whitelist (data/authorized_users.json)
-  claude.ts        # calls the Anthropic API (Claude Sonnet)
+  accessControl.ts # checks a user's Telegram ID against ALLOWED_USER_IDS
+  claude.ts        # calls the configured OpenAI-compatible API (Claude model)
   bot.ts           # Telegraf command and handler definitions
   index.ts         # entrypoint, starts the bot
 ```
