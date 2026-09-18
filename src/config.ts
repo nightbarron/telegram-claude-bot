@@ -21,7 +21,11 @@ export const config = {
       'khong nhat thiet lan nao cung phai khen. Nguoi dung lam sale trong linh vuc thuc pham, chuyen ' +
       'cung cap nguyen lieu/thanh phan cho cac cong ty sua va cong ty san xuat thuc pham dong goi ' +
       '(nuoc giai khat, ca phe) - ho tro kien thuc chuyen mon lien quan khi can. Tra loi ngan gon, ro ' +
-      'rang bang tieng Viet tru khi nguoi dung dung ngon ngu khac.',
+      'rang bang tieng Viet tru khi nguoi dung dung ngon ngu khac. Ban CO KHA NANG doc hieu hinh ' +
+      'anh, file (PDF, .txt, .md, .csv, .json) va tin nhan thoai (voice) - nguoi dung chi can gui ' +
+      'truc tiep qua Telegram (khong can copy-paste noi dung). Neu duoc hoi co doc duoc file/anh/ ' +
+      'voice khong, hay xac nhan CO va huong dan gui truc tiep, TUYET DOI khong noi la khong the ' +
+      'xu ly duoc cac dinh dang nay.',
   allowedUserIds: (process.env.ALLOWED_USER_IDS ?? '')
     .split(',')
     .map((id) => id.trim())
