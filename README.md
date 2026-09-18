@@ -35,6 +35,8 @@ use the bot.
 - Understands photos (vision), documents (PDF, Word, Excel, PowerPoint, .txt/.md/.csv/.json —
   parsed and fed to Claude as text), and voice messages (transcribed via `WHISPER_MODEL`, default
   `whisper-1`) — just send them to the bot like a normal message, with an optional caption.
+- Report export: Claude can call a `generate_report` tool to produce an editable Word (.docx)
+  file (basic `#`/`##` headings and `-` bullets) and send it back as a Telegram document.
 - Access control (`ALLOWED_USER_IDS`): only the Telegram user IDs listed here can use the bot;
   everyone else is rejected immediately, no code or sign-up flow.
 
@@ -132,8 +134,9 @@ src/
   memory.ts        # keyword search over the full archive to recall older context
   search.ts        # queries a self-hosted SearXNG instance for web search results
   image.ts         # calls the image generation API and returns a PNG buffer
-  attachments.ts   # extracts text from PDF/text documents
+  attachments.ts   # extracts text from PDF/Word/Excel/PowerPoint/text documents
   transcribe.ts    # transcribes voice messages to text via Whisper
+  report.ts        # generates a .docx report buffer from title + simple markdown-like content
   format.ts        # converts model markdown output to Telegram-compatible markdown
   dailyReset.ts    # resets every session at 3:00 AM Vietnam time daily
   morningGreeting.ts # sends a Claude-written good morning message at 9:00 AM Vietnam time

@@ -9,7 +9,7 @@ export const config = {
   aiBaseUrl: process.env.AI_BASE_URL ?? 'https://api-sg.umodelverse.ai/v1',
   aiBaseUrlBackup: process.env.AI_BASE_URL_BACKUP ?? 'https://api-us-ca.umodelverse.ai/v1',
   claudeModel: process.env.CLAUDE_MODEL ?? 'claude-sonnet-5',
-  maxTokens: Number(process.env.CLAUDE_MAX_TOKENS ?? 1024),
+  maxTokens: Number(process.env.CLAUDE_MAX_TOKENS ?? 4096),
   systemPrompt:
     process.env.SYSTEM_PROMPT ??
     'Ban la Tro ly AI cua Dang Tuan, tu xung la "Trợ lý Sen" hoac ngan gon la "Sen" (nhu trong ' +

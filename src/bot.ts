@@ -31,7 +31,7 @@ async function handleTurn(
     (m) => !session.messages.some((h) => h.timestamp === m.timestamp)
   );
 
-  const { text: reply, images } = await askClaude(session.messages, content, memories);
+  const { text: reply, images, documents } = await askClaude(session.messages, content, memories);
 
   const userMsg = { role: 'user' as const, content: loggedText, timestamp: Date.now() };
   const assistantMsg = { role: 'assistant' as const, content: reply, timestamp: Date.now() };
@@ -42,6 +42,10 @@ async function handleTurn(
 
   for (const image of images) {
     await ctx.replyWithPhoto({ source: image });
+  }
+
+  for (const doc of documents) {
+    await ctx.replyWithDocument({ source: doc.buffer, filename: doc.filename });
   }
 
   if (reply) {

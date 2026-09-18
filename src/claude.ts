@@ -3,6 +3,7 @@ import { config } from './config';
 import { ChatMessage } from './types';
 import { webSearch } from './search';
 import { generateImage } from './image';
+import { generateDocxReport } from './report';
 
 const endpoints = Array.from(new Set([config.aiBaseUrl, config.aiBaseUrlBackup].filter(Boolean)));
 const clients = endpoints.map((baseURL) => new OpenAI({ apiKey: config.aiApiKey, baseURL }));
@@ -59,6 +60,25 @@ const tools: OpenAI.Chat.ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'generate_report',
+      description:
+        'Tao 1 file Word (.docx) bao cao/tai lieu de nguoi dung tai ve va chinh sua tiep, khi ' +
+        'nguoi dung yeu cau xuat report/bao cao/tai lieu. Noi dung dung cu phap don gian: dong bat ' +
+        'dau bang "# " la tieu de lon, "## " la tieu de nho, "- " la gach dau dong, con lai la ' +
+        'doan van thuong. Moi dong cach nhau bang xuong dong.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Tieu de bao cao' },
+          content: { type: 'string', description: 'Noi dung bao cao, moi dong cach nhau boi \\n' },
+        },
+        required: ['title', 'content'],
+      },
+    },
+  },
   ...(config.searxngUrl
     ? [
         {
@@ -99,9 +119,15 @@ function buildSystemPrompt(memories: ChatMessage[]): string {
   );
 }
 
+export interface GeneratedDocument {
+  buffer: Buffer;
+  filename: string;
+}
+
 async function runToolCall(
   toolCall: OpenAI.Chat.ChatCompletionMessageToolCall,
-  images: Buffer[]
+  images: Buffer[],
+  documents: GeneratedDocument[]
 ): Promise<string> {
   if (toolCall.type !== 'function') {
     return 'Tool nay khong duoc ho tro.';
@@ -115,6 +141,18 @@ async function runToolCall(
       return 'Da tao anh thanh cong va gui cho nguoi dung.';
     } catch (err) {
       return `Loi khi tao anh: ${(err as Error).message}`;
+    }
+  }
+
+  if (toolCall.function.name === 'generate_report') {
+    try {
+      const args = JSON.parse(toolCall.function.arguments) as { title: string; content: string };
+      const buffer = await generateDocxReport(args.title, args.content);
+      const filename = `${args.title.trim().replace(/[\\/:*?"<>|]/g, '_') || 'bao-cao'}.docx`;
+      documents.push({ buffer, filename });
+      return 'Da tao file Word thanh cong va gui cho nguoi dung.';
+    } catch (err) {
+      return `Loi khi tao bao cao: ${(err as Error).message}`;
     }
   }
 
@@ -137,6 +175,7 @@ async function runToolCall(
 export interface ClaudeReply {
   text: string;
   images: Buffer[];
+  documents: GeneratedDocument[];
 }
 
 export async function generateMorningGreeting(): Promise<string> {
@@ -169,19 +208,20 @@ export async function askClaude(
   ];
 
   const images: Buffer[] = [];
+  const documents: GeneratedDocument[] = [];
 
   for (let step = 0; step < 4; step += 1) {
     const response = await createCompletion(messages);
     const choice = response.choices[0]?.message;
-    if (!choice) return { text: '(Khong co noi dung phan hoi)', images };
+    if (!choice) return { text: '(Khong co noi dung phan hoi)', images, documents };
 
     if (!choice.tool_calls || choice.tool_calls.length === 0) {
-      return { text: choice.content ?? '(Khong co noi dung phan hoi)', images };
+      return { text: choice.content ?? '(Khong co noi dung phan hoi)', images, documents };
     }
 
     messages.push(choice);
     for (const toolCall of choice.tool_calls) {
-      const result = await runToolCall(toolCall, images);
+      const result = await runToolCall(toolCall, images, documents);
       messages.push({ role: 'tool', tool_call_id: toolCall.id, content: result });
     }
   }
@@ -189,5 +229,6 @@ export async function askClaude(
   return {
     text: 'Xin loi, Co Chu thu hoi lai cau khac giup Sen nhe, thao tac hoi lau qua.',
     images,
+    documents,
   };
 }
