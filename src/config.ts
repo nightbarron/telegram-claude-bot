@@ -32,6 +32,7 @@ export const config = {
   searxngUrl: process.env.SEARXNG_URL ?? '',
   imageModel: process.env.IMAGE_MODEL ?? 'gpt-image-2',
   imageBaseUrl: process.env.IMAGE_BASE_URL ?? 'https://api-us-ca.umodelverse.ai/v1',
+  whisperModel: process.env.WHISPER_MODEL ?? 'whisper-1',
   dataDir,
   sessionsDir: path.join(dataDir, 'sessions'),
   logsDir: path.join(dataDir, 'logs'),

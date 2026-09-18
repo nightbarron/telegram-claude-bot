@@ -159,7 +159,7 @@ export async function generateMorningGreeting(): Promise<string> {
 
 export async function askClaude(
   history: ChatMessage[],
-  userMessage: string,
+  userMessage: string | OpenAI.Chat.ChatCompletionContentPart[],
   memories: ChatMessage[] = []
 ): Promise<ClaudeReply> {
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
