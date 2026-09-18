@@ -69,7 +69,7 @@ export function createBot(): Telegraf {
     resetSession(ctx.from.id, ctx.chat.id);
     await ctx.reply(
       'Xin chao! Toi la tro ly Claude.\n' +
-        'Gui tin nhan, hinh anh, file (PDF/txt) hoac tin nhan thoai de tro chuyen.\n' +
+        'Gui tin nhan, hinh anh, file (PDF/Word/Excel/PowerPoint/txt) hoac tin nhan thoai de tro chuyen.\n' +
         'Dung /new de bat dau phien tro chuyen moi, /help de xem tro giup.'
     );
   });
@@ -82,7 +82,7 @@ export function createBot(): Telegraf {
         'Ban co the:\n' +
         '- Nhan tin binh thuong de tro chuyen.\n' +
         '- Gui hinh anh de nho phan tich/mo ta.\n' +
-        '- Gui file PDF/txt/md/csv de doc va tom tat.\n' +
+        '- Gui file PDF/Word/Excel/PowerPoint/txt/md/csv de doc va tom tat.\n' +
         '- Gui tin nhan thoai (voice) de chuyen thanh van ban va tra loi.'
     );
   });
