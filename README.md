@@ -24,8 +24,9 @@ use the bot.
   instance and Claude can call it as a tool for up-to-date/real-world information. Leave it empty
   to disable.
 - Every session is automatically reset (like `/new`) at 3:00 AM Vietnam time (UTC+7) daily.
-- Proactive morning greeting: at 9:00 AM Vietnam time daily, the bot has Claude write a fresh,
-  varied "good morning" message and sends it to every ID in `ALLOWED_USER_IDS`.
+- Proactive morning greeting: at 9:00 AM Vietnam time on weekdays (skipped on Sat/Sun), the bot
+  has Claude write a fresh, varied "good morning" message plus a couple of things it can help with
+  that day, and sends it to every ID in `ALLOWED_USER_IDS`.
 - Resilient API calls: each request retries a couple of times on the primary endpoint, then fails
   over to `AI_BASE_URL_BACKUP` (default: ModelVerse's other region) if the primary keeps failing.
 - Image generation: Claude can call a `generate_image` tool (model configurable via `IMAGE_MODEL`,

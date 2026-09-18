@@ -9,6 +9,12 @@ import { toTelegramMarkdown } from './format';
 const GREETING_HOUR_UTC = 2;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
+function isWeekend(date: Date): boolean {
+  // Tai thoi diem GREETING_HOUR_UTC, ngay UTC trung voi ngay gio Viet Nam (xem ghi chu tren).
+  const day = date.getUTCDay();
+  return day === 0 || day === 6;
+}
+
 function msUntilNextGreeting(): number {
   const now = new Date();
   const next = new Date(
@@ -44,7 +50,11 @@ async function sendMorningGreetings(bot: Telegraf): Promise<void> {
 
 export function scheduleMorningGreeting(bot: Telegraf): void {
   const run = (): void => {
-    sendMorningGreetings(bot);
+    if (isWeekend(new Date())) {
+      console.log('Bo qua loi chao buoi sang vi hom nay la Thu 7/Chu nhat.');
+    } else {
+      sendMorningGreetings(bot);
+    }
     setTimeout(run, ONE_DAY_MS);
   };
   setTimeout(run, msUntilNextGreeting());

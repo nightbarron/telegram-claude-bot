@@ -146,7 +146,10 @@ export async function generateMorningGreeting(): Promise<string> {
       role: 'user',
       content:
         'Bay gio la 9 gio sang. Hay chu dong gui mot loi chao buoi sang that ngot ngao, ngan gon, ' +
-        'khac voi nhung lan truoc, de bat dau ngay moi that vui ve.',
+        'khac voi nhung lan truoc, de bat dau ngay moi that vui ve. Sau do, goi y ngan gon 1-2 viec ' +
+        'ma Tro ly co the giup Co Chu trong ngay hom nay (vi du: tra cuu gia nguyen lieu/thi ' +
+        'truong, tim thong tin nha cung cap hoac khach hang moi, soan tin nhan/bao gia, tao hinh ' +
+        'anh minh hoa san pham...).',
     },
   ];
 
@@ -184,7 +187,7 @@ export async function askClaude(
   }
 
   return {
-    text: 'Xin loi, Co Chu thu hoi lai cau khac giup Tro ly nhe, thao tac hoi lau qua.',
+    text: 'Xin loi, Co Chu thu hoi lai cau khac giup Sen nhe, thao tac hoi lau qua.',
     images,
   };
 }
