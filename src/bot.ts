@@ -168,7 +168,7 @@ export function createBot(): Telegraf {
       const transcript = await transcribeAudio(buffer, 'voice.ogg');
 
       if (!transcript.trim()) {
-        await ctx.reply('Sen khong nghe ro noi dung tin nhan thoai nay, Co Chu thu gui lai giup Sen nhe.');
+        await ctx.reply('Mi khong nghe ro noi dung tin nhan thoai nay, Co Chu thu gui lai giup Mi nhe.');
         return;
       }
 

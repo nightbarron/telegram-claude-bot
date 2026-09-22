@@ -227,7 +227,7 @@ export async function askClaude(
   }
 
   return {
-    text: 'Xin loi, Co Chu thu hoi lai cau khac giup Sen nhe, thao tac hoi lau qua.',
+    text: 'Xin loi, Co Chu thu hoi lai cau khac giup Mi nhe, thao tac hoi lau qua.',
     images,
     documents,
   };
