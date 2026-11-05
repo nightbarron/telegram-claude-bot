@@ -37,6 +37,10 @@ use the bot.
   `whisper-1`) — just send them to the bot like a normal message, with an optional caption.
 - Report export: Claude can call a `generate_report` tool to produce an editable Word (.docx)
   file (basic `#`/`##` headings and `-` bullets) and send it back as a Telegram document.
+- Spreadsheet export: a `generate_spreadsheet` tool produces an Excel (.xlsx) file with one or
+  more sheets, a styled and frozen header row, auto filter, auto column width, numeric cells and
+  Excel formulas (cells starting with `=`, e.g. `=C2*D2`). Numeric strings with a leading zero
+  (phone numbers, product codes) stay as text.
 - Access control (`ALLOWED_USER_IDS`): only the Telegram user IDs listed here can use the bot;
   everyone else is rejected immediately, no code or sign-up flow.
 
@@ -137,6 +141,7 @@ src/
   attachments.ts   # extracts text from PDF/Word/Excel/PowerPoint/text documents
   transcribe.ts    # transcribes voice messages to text via Whisper
   report.ts        # generates a .docx report buffer from title + simple markdown-like content
+  spreadsheet.ts   # generates a .xlsx workbook (multi-sheet, formulas, styled header) via exceljs
   format.ts        # converts model markdown output to Telegram-compatible markdown
   dailyReset.ts    # resets every session at 3:00 AM Vietnam time daily
   morningGreeting.ts # sends a Claude-written good morning message at 9:00 AM Vietnam time

@@ -87,7 +87,8 @@ export function createBot(): Telegraf {
         '- Nhan tin binh thuong de tro chuyen.\n' +
         '- Gui hinh anh de nho phan tich/mo ta.\n' +
         '- Gui file PDF/Word/Excel/PowerPoint/txt/md/csv de doc va tom tat.\n' +
-        '- Gui tin nhan thoai (voice) de chuyen thanh van ban va tra loi.'
+        '- Gui tin nhan thoai (voice) de chuyen thanh van ban va tra loi.\n' +
+        '- Nho xuat file Word (bao cao) hoac Excel (bang tinh, bao gia, danh sach).'
     );
   });
 
