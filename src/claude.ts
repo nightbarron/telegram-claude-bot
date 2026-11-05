@@ -4,6 +4,7 @@ import { ChatMessage } from './types';
 import { webSearch } from './search';
 import { generateImage } from './image';
 import { generateDocxReport } from './report';
+import { generateXlsx, SheetInput } from './spreadsheet';
 
 const endpoints = Array.from(new Set([config.aiBaseUrl, config.aiBaseUrlBackup].filter(Boolean)));
 const clients = endpoints.map((baseURL) => new OpenAI({ apiKey: config.aiApiKey, baseURL }));
@@ -76,6 +77,52 @@ const tools: OpenAI.Chat.ChatCompletionTool[] = [
           content: { type: 'string', description: 'Noi dung bao cao, moi dong cach nhau boi \\n' },
         },
         required: ['title', 'content'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'generate_spreadsheet',
+      description:
+        'Tao 1 file Excel (.xlsx) de nguoi dung tai ve, khi nguoi dung yeu cau xuat Excel/bang tinh/' +
+        'bang gia/bao gia/danh sach/bang so lieu, hoac du lieu dang bang (nhieu dong, nhieu cot). ' +
+        'Moi sheet gom tieu de cot va cac dong du lieu. So luong, don gia, thanh tien dien dang so ' +
+        '(khong kem don vi, khong dau cham phan cach hang nghin) de Excel tinh duoc. Co the dung ' +
+        'cong thuc Excel bang chuoi bat dau bang "=", vi du "=C2*D2" hoac "=SUM(E2:E10)" (dong 1 la ' +
+        'tieu de cot, du lieu bat dau tu dong 2). SDT, ma so co so 0 dau thi de dang chuoi.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Ten file Excel (khong can duoi .xlsx)' },
+          sheets: {
+            type: 'array',
+            description: 'Danh sach sheet trong file',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', description: 'Ten sheet, toi da 31 ky tu' },
+                columns: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Tieu de cac cot',
+                },
+                rows: {
+                  type: 'array',
+                  description: 'Cac dong du lieu, moi dong la mang gia tri theo dung thu tu cot',
+                  items: {
+                    type: 'array',
+                    items: {
+                      anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'boolean' }, { type: 'null' }],
+                    },
+                  },
+                },
+              },
+              required: ['columns', 'rows'],
+            },
+          },
+        },
+        required: ['title', 'sheets'],
       },
     },
   },
@@ -153,6 +200,18 @@ async function runToolCall(
       return 'Da tao file Word thanh cong va gui cho nguoi dung.';
     } catch (err) {
       return `Loi khi tao bao cao: ${(err as Error).message}`;
+    }
+  }
+
+  if (toolCall.function.name === 'generate_spreadsheet') {
+    try {
+      const args = JSON.parse(toolCall.function.arguments) as { title: string; sheets: SheetInput[] };
+      const buffer = await generateXlsx(args.title, args.sheets);
+      const filename = `${(args.title ?? '').trim().replace(/[\\/:*?"<>|]/g, '_') || 'bang-tinh'}.xlsx`;
+      documents.push({ buffer, filename });
+      return 'Da tao file Excel thanh cong va gui cho nguoi dung.';
+    } catch (err) {
+      return `Loi khi tao file Excel: ${(err as Error).message}`;
     }
   }
 
